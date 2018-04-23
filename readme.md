@@ -21,7 +21,7 @@ php artisan intranetone-gallery:install
 ## Assets
   
  - Instalar pacote js da intranetone
- `bower install dataview-iogallery --save`
+ `bower install intranetone-gallery --save`
 
 
 ### Configurações Manuais
