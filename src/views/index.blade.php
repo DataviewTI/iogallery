@@ -1,10 +1,5 @@
 @extends('IntranetOne::io.layout.dashboard')
 
-@section('title')
- @parent | Galeria de Imagens
-@stop
-
-
 {{-- page level styles --}}
 @section('header_styles')
   <link rel="stylesheet" type="text/css" href="{{ asset('css/pickadate-full.min.css') }}">
@@ -13,7 +8,7 @@
 @stop
 
 @section('main-heading')
-	<h1>Galeria de Imagens</h1>
+  Galeria de Imagens
 @stop
 
 @section('main-content')

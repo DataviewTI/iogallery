@@ -24,7 +24,7 @@ class GalleryController extends IOController{
 	}
 	
 	public function list(){
-    $query = Gallery::select('id','title','description','featured','group_id','date_start','date_end')
+    $query = Gallery::select('id','title','description','featured','group_id','date_start','date_end','sizes')
     ->with([
       'categories'=>function($query){
         $query->select('categories.id','category','categories.category_id')
@@ -58,7 +58,7 @@ class GalleryController extends IOController{
     if(!$check['status'])
       return response()->json(['errors' => $check['errors'] ], $check['code']);	
 
-    $query = Gallery::select('id','title','featured','description','date_start','date_end','group_id')
+    $query = Gallery::select('id','title','featured','description','date_start','date_end','group_id','sizes')
       ->with([
         'categories'=>function($query){
           $query->select('categories.id','main','category','categories.category_id')
@@ -87,6 +87,7 @@ class GalleryController extends IOController{
       $_old->date_end = $_new->date_end;
       $_old->description = $_new->description;
 			$_old->featured = $_new->featured;
+			$_old->sizes = $_new->sizes;
       
 			$_old->categories()->sync($request->__cat_subcats_converted);
   

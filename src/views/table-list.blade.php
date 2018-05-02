@@ -65,6 +65,7 @@
 			["title" => "Título"],
 			["title" => "Dt Inicial"],
 			["title" => "Dt_Final"],
+			["title" => "S"],
 			["title" => "Cats"],
 			["title" => "F"],
 			["title" => "Ações"],

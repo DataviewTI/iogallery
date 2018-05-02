@@ -13,7 +13,8 @@ class GallerySeeder extends Seeder
       if(!Service::where('service','Gallery')->exists()){
         Service::insert([
             'service' => "Gallery",
-            'ico' => 'ico ico-save',
+            'alias' =>'gallery',
+            'ico' => 'ico-image',
             'description' => 'Galeria de Imagens',
             'order' => Service::max('order')+1
           ]);
