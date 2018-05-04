@@ -24,11 +24,14 @@ class GalleryController extends IOController{
 	}
 	
 	public function list(){
-    $query = Gallery::select('id','title','description','featured','group_id','date_start','date_end','sizes')
+    $query = Gallery::select('id','title','description','featured','group_id','date_start','date_end')
     ->with([
       'categories'=>function($query){
         $query->select('categories.id','category','categories.category_id')
         ->with('maincategory');
+      },
+      'group'=>function($query){
+        $query->select('groups.id','sizes');
       }
     ])
     ->get();
@@ -45,7 +48,12 @@ class GalleryController extends IOController{
     if(!$check['status'])
       return response()->json(['errors' => $check['errors'] ], $check['code']);	
       
-    $obj = Gallery::create($request->all());
+    $obj = new Gallery($request->all());
+//    Gallery::create
+    $obj->setAppend("sizes",$request->__dz_copy_params);
+    //$obj = Gallery::create($request->all());
+    $obj->save();
+
     $obj->categories()->sync($request->__cat_subcats_converted);
     $obj->group->manageImages(json_decode($request->__dz_images),json_decode($request->__dz_copy_params));
     $obj->save();
@@ -58,14 +66,17 @@ class GalleryController extends IOController{
     if(!$check['status'])
       return response()->json(['errors' => $check['errors'] ], $check['code']);	
 
-    $query = Gallery::select('id','title','featured','description','date_start','date_end','group_id','sizes')
+    $query = Gallery::select('id','title','featured','description','date_start','date_end','group_id')
       ->with([
         'categories'=>function($query){
           $query->select('categories.id','main','category','categories.category_id')
           ->orderBy('main','category')
           ->with('maincategory');
         },
-        'group.files'
+        'group'=>function($query){
+          $query->select('groups.id','sizes')
+          ->with('files');
+        },
       ])
       ->orderBy('date_start','desc')
       ->where('id',$id)
@@ -87,16 +98,19 @@ class GalleryController extends IOController{
       $_old->date_end = $_new->date_end;
       $_old->description = $_new->description;
 			$_old->featured = $_new->featured;
-			$_old->sizes = $_new->sizes;
       
 			$_old->categories()->sync($request->__cat_subcats_converted);
   
-      if($_old->group != null)
-				$_old->group->manageImages(json_decode($_new->__dz_images),json_decode($_new->__dz_copy_params));
-			else
+      if($_old->group != null){
+        $_old->group->sizes = $_new->sizes;
+        $_old->group->manageImages(json_decode($_new->__dz_images),json_decode($_new->__dz_copy_params));
+        $_old->group->save();
+      }
+      else
 				if(count(json_decode($_new->__dz_images))>0){
 					$_old->group()->associate(Group::create([
-						'group' => "Album da Galeria ".$obj->id,
+            'group' => "Album da Galeria ".$obj->id,
+            'sizes' => $_new->__dz_copy_params
             ])
           );
 					$_old->group->manageImages(json_decode($_new->__dz_images),json_decode($_new->__dz_copy_params));

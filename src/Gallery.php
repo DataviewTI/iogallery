@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class Gallery extends IOModel
 {
-  protected $fillable = ['title','sizes','description','featured','date_start','date_end','group_id'];
+  protected $fillable = ['title','description','featured','date_start','date_end','group_id'];
 
   public function group(){
     return $this->belongsTo('Dataview\IntranetOne\Group');
@@ -29,6 +29,7 @@ class Gallery extends IOModel
     static::created(function (Gallery $obj) {
       $group = new Group([
         'group' => "Album da Galeria ".$obj->id,
+        'sizes' => $obj->getAppend("sizes")
       ]);
       $group->save();
       $obj->group()->associate($group)->save();

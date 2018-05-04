@@ -12,7 +12,6 @@ class CreateGalleriesTable extends Migration
 			{
 				$table->increments('id');
 				$table->string('title');
-				$table->mediumText('sizes')->nullable();
 				$table->boolean('featured')->default(false);
         $table->text('description')->nullable();
 				$table->dateTime('date_start');

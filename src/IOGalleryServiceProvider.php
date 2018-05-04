@@ -25,12 +25,8 @@ class IOGalleryServiceProvider extends ServiceProvider
         include __DIR__.'/routes/web.php';
       });
       //buscar uma forma de não precisar fazer o make de cada classe
-
-      $this->mergeConfigFrom(
-        __DIR__.'/config/intranetone.php', 'intranetone'
-      );
-    
-    $this->app->make('Dataview\IOGallery\GalleryController');
+  
+      $this->app->make('Dataview\IOGallery\GalleryController');
       $this->app->make('Dataview\IOGallery\GalleryRequest');
       //$this->app->make('Dataview\IONews\News');
     }
