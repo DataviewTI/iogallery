@@ -1,0 +1,33 @@
+{
+  "description": "Image Gallery assets package for IntranetOne",
+  "license": "MIT",
+  "main": "wploader.js",
+  "name": "intranetone-gallery",
+  "version": "0.0.1",
+  "maintainers": [
+    {
+      "name": "Marcelo Disconzi",
+      "email": "mdisconzi@gmail.com"
+    },
+    {
+      "name": "Thiago Brauer",
+      "email": "thiagobrauer@gmail.com"
+    }
+  ],
+  "keywords": [
+    "Laravel",
+    "IntranetOne",
+    "Intranet CMS",
+    "Dataview",
+    "Image Gallery"
+  ],
+  "IODependencies": {
+    "sortablejs": "^1.6.0",
+    "dropzone": "^5.1.1",
+    "cropperjs": "^1.3.6",
+    "jquery-cropper": "^1.0.0"
+  },
+  "ignore": [
+    "node_modules"
+  ]
+}

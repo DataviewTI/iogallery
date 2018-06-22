@@ -3,22 +3,24 @@
 namespace Dataview\IOGallery;
 
 use Illuminate\Support\ServiceProvider;
-use Dataview\IOGallery\Console\IOGalleryInstallCommand;
-
 
 class IOGalleryServiceProvider extends ServiceProvider
 {
+    public static function pkgAddr($addr){
+      return __DIR__.'/'.$addr;
+    }
+
     public function boot()
     {
       $this->loadViewsFrom(__DIR__.'/views', 'Gallery');
       //$this->loadMigrationsFrom(__DIR__.'/database/migrations');
     }
 
-
     public function register()
     {
       $this->commands([
-        IOGalleryInstallCommand::class,
+        Console\Install::class,
+        Console\Remove::class
       ]);
 
       $this->app['router']->group(['namespace' => 'dataview\iogallery'], function () {

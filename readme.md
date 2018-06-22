@@ -4,9 +4,6 @@ Galeria de fotos...
 IOGallery requires IntranetOne
 ## Conteúdo
  
-- [Instalação](#instalação)
-- [Assets](#assets) 
-
 ## Instalação
 
 ```sh
@@ -17,18 +14,26 @@ Instalar o IntranetOne com php artisan
 php artisan intranetone-gallery:install
 ```
 
-
 ## Assets
   
- - Instalar pacote js da intranetone
- `bower install intranetone-gallery --save`
+- Instale o pacote de assets da do serviço IOGallery via NPM
 
+```sh
+npm install assets-io-gallery --save
+```
 
-### Configurações Manuais
-
-Abrir o package em "resources/vendors/dataview-intranetone-gallery/src" e inserir o conteúdo do arquivo "append_webpack.js" no webpack do projeto
-
- - Compilar os assets e fazer cache
- `npm run dev|prod|watch`
- `php artisan config:cache`
- 
+- Configure o webpack conforme abaixo 
+```js
+let io = require('intranetone');
+let gallery = require('intranetone-gallery');
+io.compile({
+  services:{
+    'gallery': new gallery()
+  }
+});
+```
+- Compile os assets e faça o cache
+```sh
+npm run dev|prod|watch
+php artisan config:cache
+```
