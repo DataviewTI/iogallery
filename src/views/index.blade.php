@@ -28,6 +28,14 @@
 						"icon"=>"ico ico-new",
 						"view"=>"Gallery::form"
 					],
+					[
+						"tab"=>"Categorias",
+						"icon"=>"ico ico-structure-2",
+						"view"=>"IntranetOne::io.layout.categories-crud",
+						"params"=>[
+							"cat"=>"Gallery"
+						]
+					],
 				]
 			])
 			@endcomponent
