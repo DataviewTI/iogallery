@@ -45,7 +45,7 @@
         </select>
       </div>
     </div>
-    <div class="col-md-1 col-sm-12">
+    <div class="col-md-2 col-sm-12">
       <div class="form-group">
         <label for = 'subtitulo' class = 'bmd-label-static'><i class = 'ico ico-filter'></i> Destaque?</label>
         <select id = 'ft_featured' class = 'form-control form-control-lg'>
