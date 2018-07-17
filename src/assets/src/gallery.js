@@ -17,17 +17,17 @@ new IOService({
       }
     });
 
-
     $('#add_dimension').on("click",function(e){
       e.preventDefault();
       self.fv.caller = 'dimensions';
-      self.df.formValidation('enableFieldValidators','img_prefix',true);
-      self.df.formValidation('enableFieldValidators','img_largura',true);
-      self.df.formValidation('enableFieldValidators','img_altura',true);
-      self.df.formValidation('validateContainer',$('#dimension_container'));
-
-      if(self.wz.keys.fv.isValidContainer($('#dimension_container')))
-        addDimension(
+      self.dimensionsFv.addField('img_prefix', img_prefix);
+      self.dimensionsFv.addField('img_largura', img_largura);
+      self.dimensionsFv.addField('img_altura', img_altura);
+      self.dimensionsFv.validate().then(function(status) {
+        console.log(status);
+        
+        if(status === 'Valid')
+          addDimension(
           {
             self:self,
             prefixo:$('#img_prefix').val(),
@@ -35,7 +35,7 @@ new IOService({
             altura:$('#img_altura').val(),
           })
       });
-
+    });
 
     Sortable.create(document.getElementById('custom-dropzone'),{
       animation: 250,
@@ -50,7 +50,7 @@ new IOService({
           group:"sl-categories",
           onAdd: function (evt) {
             var item = evt.item;
-            self.df.formValidation('revalidateField', '__cat_subcats');
+            self.fv[1].revalidateField('__cat_subcats');
           },
           sort:false,
         });
@@ -71,7 +71,7 @@ new IOService({
       else
         $('#date_end').pickadate().pickadate('picker').set('min',new Date())
         
-        self.df.formValidation('revalidateField', 'date_start');
+        self.fv[0].revalidateField('date_start');
     });
   
     $('#date_end').pickadate({
@@ -81,44 +81,10 @@ new IOService({
         $("[name='description']").focus();
       }
     }).pickadate('picker').on('render', function(){
-      self.df.formValidation('revalidateField', 'date_end');
+      self.fv[0].revalidateField('date_end');
     });
 
-
     //Datatables initialization
-    
-    FormValidation.Validator.checkPrefix = {
-      validate: function(validator, $field, options){
-
-        let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
-
-        if(prfs.includes($field.val().toLowerCase()))
-          return {
-              valid: false,
-              message: 'O Prefixo já existe'
-          }
-
-          return {
-              valid: true,
-          }
-      }
-    }
-  
-    FormValidation.Validator.thumbPrefix = {
-      validate: function(validator, $field, options){
-        let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
-        if(!prfs.includes("thumb"))
-        return {
-            valid: false,
-            message: 'Prefixo thumb é obrigatório'
-        }
-          return {
-              valid: true,
-          }
-      }
-    }
-
-
     self.dt = $('#default-table').DataTable({
       aaSorting:[ [0,"desc" ]],
       ajax: self.path+'/list',
@@ -315,7 +281,7 @@ new IOService({
                   {ico:'ico-edit',_class:'text-info',title:'editar'},
                 ]});
           }
-        }      
+        }
       ]
     })
     .on('click','.ico-trash',function(){
@@ -339,155 +305,272 @@ new IOService({
       $('#img_largura').val('');
       $('#img_altura').val('');
       $('#img_prefix').focus();
-      self.df.formValidation('updateStatus','img_largura','NOT_VALIDATED');
-      self.df.formValidation('updateStatus','img_altura','NOT_VALIDATED');
-      self.df.formValidation('updateStatus','img_prefix','NOT_VALIDATED');
+      self.dimensionsFv.updateFieldStatus('img_largura', 'NotValidated');
+      self.dimensionsFv.updateFieldStatus('img_altura', 'NotValidated');
+      self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
     });
 
     $('#thumb_edit').on("click",function(e){
       e.preventDefault();
       self.fv.caller = 'dimensions';
-      self.df.formValidation('enableFieldValidators','img_prefix',false);
-      self.df.formValidation('enableFieldValidators','img_largura',true);
-      self.df.formValidation('enableFieldValidators','img_altura',true);
-      self.df.formValidation('validateContainer',$('#dimension_container'));
-
-      if(self.wz.keys.fv.isValidContainer($('#dimension_container'))){
-        self.dz.copy_params.sizes.thumb.w = $('#img_largura').val();
-        self.dz.copy_params.sizes.thumb.h = $('#img_altura').val();
-        self.dz.options.thumbnailHeight = $('#img_altura').val();
-        self.dz.options.thumbnailWidth = $('#img_largura').val();
-        let data = self.dimensions_dt.row(0).data();
-        data[1] = $('#img_largura').val();
-        data[2] = $('#img_altura').val();
-        self.dimensions_dt.row(0).data(data);
-        $('#cancel_thumb_edit').trigger('click');
-      }
+      self.dimensionsFv.addField('img_prefix', img_prefix);
+      self.dimensionsFv.removeField('img_prefix', img_prefix);
+      self.dimensionsFv.addField('img_largura', img_largura);
+      self.dimensionsFv.addField('img_altura', img_altura);
+      self.dimensionsFv.validate().then(function(status) {
+        console.log(status);
+        
+        if(status === 'Valid')
+          self.dz.copy_params.sizes.thumb.w = $('#img_largura').val();
+          self.dz.copy_params.sizes.thumb.h = $('#img_altura').val();
+          self.dz.options.thumbnailHeight = $('#img_altura').val();
+          self.dz.options.thumbnailWidth = $('#img_largura').val();
+          let data = self.dimensions_dt.row(0).data();
+          data[1] = $('#img_largura').val();
+          data[2] = $('#img_altura').val();
+          self.dimensions_dt.row(0).data(data);
+          $('#cancel_thumb_edit').trigger('click');
+      });
     });
 
+    const checkPrefix = function() {
+      return {
+        validate: function(input){
+          let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
+  
+          if(prfs.includes(input.value.toLowerCase()))
+            return {
+              valid: false,
+              message: 'O Prefixo já existe'
+            }
+  
+            return {
+              valid: true,
+            }
+        }
+      };
+    };
+    
+    const thumbPrefix = function() {
+      return {
+        validate: function(input){
+          let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
+          if(!prfs.includes("thumb"))
+          return {
+              valid: false,
+              message: 'Prefixo thumb é obrigatório'
+          }
+            return {
+              valid: true,
+            }
+        }
+      };
+    };
 
-    //FormValidation initialization
-    self.fv = self.df.formValidation({
-      locale: 'pt_BR',
-      excluded: 'disabled',
-      framework: 'bootstrap',  
-      icon: {
-        valid: 'fv-ico ico-check',
-        invalid: 'fv-ico ico-close',
-        validating: 'fv-ico ico-gear ico-spin'
-      },
-      fields:{
-        title:{
-          validators:{
-            notEmpty:{
-              message: 'O título da galeria é obrigatório!'
-            }
+    let img_prefix = {
+      validators:{
+          checkPrefix:{
+          },
+          thumbPrefix:{
+          },
+          notEmpty:{
+            message: 'Informe o prefíxo da imagem!'
           }
+      }
+    };
+    
+    let img_altura ={
+      validators:{
+        notEmpty:{
+          message: 'Informe a Altura'
         },
-        date_start:{
-          validators:{
-            notEmpty:{
-              message: 'O data inicial é obrigatória'
-            },
-            date:{
-              format: 'DD/MM/YYYY',
-              message: 'Informe uma data válida!'
-            }
-          }
+        greaterThan: {
+          min: 1,
+          message: 'Alt. Mínima 1px',
         },
-        date_end:{
-          validators:{
-            date:{
-              format: 'DD/MM/YYYY',
-              message: 'Informe uma data válida!'
-            }
-          }
+        lessThan: {
+          max: 4000,
+          message: 'Alt. Máxima 4000px',
+        }
+      }
+    };
+
+    let img_largura ={
+      validators:{ 
+        notEmpty:{
+          message: 'Informe a Largura'
         },
-        __cat_subcats:{
-          validators:{
-            callback:{
-              message: 'A galeria deve ter no mínimo uma categoria vinculada!',
-              callback: function(value, validator, $field){
-                return $('#__sl-main-group button.list-group-item').length > 0;
-              }
-            }
-          }
+        greaterThan: {
+          min: 1,
+          message: 'Larg. Mínima 1px',
         },
-        has_images:{
-          validators:{
-            callback:{
-              message: 'A galeria deve ter no mínimo uma imagem!',
-              callback: function(value, validator, $field){
-                
-                if(self.dz.files.length>0)
-                  return true
-                
-                toastr["error"]("A galeria deve conter no mínimo uma imagem!")
-                
-                return false;
-              }
-            }
-          }
-        },
-        'img_prefix':{
-          enabled:false,
-          validators:{
-              checkPrefix:{
-              },
-              thumbPrefix:{
-              },
+        lessThan: {
+          max: 4000,
+          message: 'Larg. Máxima 4000px',
+        }
+      }
+    };
+
+    let form = document.getElementById(self.dfId);
+    let fv1 = FormValidation.formValidation(
+      form.querySelector('.step-pane[data-step="1"]'),
+      {
+        fields: {
+          title:{
+            validators:{
               notEmpty:{
-                message: 'Informe o prefíxo da imagem!'
+                message: 'O título da galeria é obrigatório!'
               }
-          }
-        },
-        'img_altura':{
-          enabled:false,
-          validators:{
-            notEmpty:{
-              message: 'Informe a Altura'
-            },
-            greaterThan: {
-              value: 1,
-              message: 'Alt. Mínima 1px',
-            },
-            lessThan: {
-              value: 4000,
-              message: 'Alt. Máxima 4000px',
             }
-          }
-        },
-        'img_largura':{
-          enabled:false,
-          validators:{
-            notEmpty:{
-              message: 'Informe a Largura'
-            },
-            greaterThan: {
-              value: 1,
-              message: 'Larg. Mínima 1px',
-            },
-            lessThan: {
-              value: 4000,
-              message: 'Larg. Máxima 4000px',
+          },
+          date_start:{
+            validators:{
+              notEmpty:{
+                message: 'O data inicial é obrigatória'
+              },
+              date:{
+                format: 'DD/MM/YYYY',
+                message: 'Informe uma data válida!'
+              }
             }
-          }
+          },
+          date_end:{
+            validators:{
+              date:{
+                format: 'DD/MM/YYYY',
+                message: 'Informe uma data válida!'
+              }
+            }
+          },
         },
-      }
-    })
-    .on('err.field.fv', function(e, data) {
-      if(self.fv.caller=='wizard'){
-        self.df.formValidation('enableFieldValidators','img_prefix',false);
-        self.df.formValidation('enableFieldValidators','img_largura',false);
-        self.df.formValidation('enableFieldValidators','img_altura',false);
-      }
-    })
-    .on('err.validator.fv', function(e, data) {
-      data.element
-          .data('fv.messages')
-          .find('.help-block[data-fv-for="' + data.field + '"]').hide()
-          .filter('[data-fv-validator="' + data.validator + '"]').show();
+        plugins: {
+          trigger: new FormValidation.plugins.Trigger(),
+          submitButton: new FormValidation.plugins.SubmitButton(),
+          // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+          bootstrap: new FormValidation.plugins.Bootstrap(),
+          icon: new FormValidation.plugins.Icon({
+            valid: 'fv-ico ico-check',
+            invalid: 'fv-ico ico-close',
+            validating: 'fv-ico ico-gear ico-spin'
+          }),
+        },
+    }).setLocale('pt_BR', FormValidation.locales.pt_BR)
+    .on('core.validator.validated', function(event) {
+      console.log(event);
+      
     });
+
+    self.dimensionsFv = FormValidation.formValidation(
+      form.querySelector('#dimension_container'),
+      {
+        fields: {
+        },
+        plugins: {
+          trigger: new FormValidation.plugins.Trigger(),
+          submitButton: new FormValidation.plugins.SubmitButton(),
+          // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+          bootstrap: new FormValidation.plugins.Bootstrap(),
+          icon: new FormValidation.plugins.Icon({
+            valid: 'fv-ico ico-check',
+            invalid: 'fv-ico ico-close',
+            validating: 'fv-ico ico-gear ico-spin'
+          }),
+        },
+    }).setLocale('pt_BR', FormValidation.locales.pt_BR)
+    .registerValidator('checkPrefix', checkPrefix)
+    .registerValidator('thumbPrefix', thumbPrefix);
+
+    let fv2 = FormValidation.formValidation(
+      form.querySelector('.step-pane[data-step="2"]'),
+      {
+        fields: {
+          __cat_subcats:{
+            validators:{
+              callback:{
+                message: 'A galeria deve ter no mínimo uma categoria vinculada!',
+                callback: function(value, validator, $field){
+                  return $('#__sl-main-group button.list-group-item').length > 0;
+                }
+              }
+            }
+          },
+        },
+        plugins: {
+          trigger: new FormValidation.plugins.Trigger(),
+          submitButton: new FormValidation.plugins.SubmitButton(),
+          // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+          bootstrap: new FormValidation.plugins.Bootstrap(),
+          icon: new FormValidation.plugins.Icon({
+            valid: 'fv-ico ico-check',
+            invalid: 'fv-ico ico-close',
+            validating: 'fv-ico ico-gear ico-spin'
+          }),
+        },
+    }).setLocale('pt_BR', FormValidation.locales.pt_BR);
+
+    let fv3 = FormValidation.formValidation(
+      form.querySelector('.step-pane[data-step="3"]'),
+      {
+        fields: {
+          has_images:{
+            validators:{
+              callback:{
+                message: 'A galeria deve ter no mínimo uma imagem!',
+                callback: function(value, validator, $field){
+                  
+                  if(self.dz.files.length>0)
+                    return true
+                  
+                  toastr["error"]("A galeria deve conter no mínimo uma imagem!")
+                  
+                  return false;
+                }
+              }
+            }
+          },
+        },
+        plugins: {
+          trigger: new FormValidation.plugins.Trigger(),
+          submitButton: new FormValidation.plugins.SubmitButton(),
+          // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+          bootstrap: new FormValidation.plugins.Bootstrap(),
+          icon: new FormValidation.plugins.Icon({
+            valid: 'fv-ico ico-check',
+            invalid: 'fv-ico ico-close',
+            validating: 'fv-ico ico-gear ico-spin'
+          }),
+        },
+    }).setLocale('pt_BR', FormValidation.locales.pt_BR);
+
+    self.fv = [fv1, fv2, fv3];
+
+    // FormValidation initialization
+    // self.fv = self.df.formValidation({
+    //   locale: 'pt_BR',
+    //   excluded: 'disabled',
+    //   framework: 'bootstrap',  
+    //   icon: {
+    //     valid: 'fv-ico ico-check',
+    //     invalid: 'fv-ico ico-close',
+    //     validating: 'fv-ico ico-gear ico-spin'
+    //   },
+    //   fields:{
+        
+    //   }
+    // })
+    // .on('err.field.fv', function(e, data) {
+    //   if(self.fv.caller=='wizard'){
+    //     self.df.formValidation('enableFieldValidators','img_prefix',false);
+    //     self.df.formValidation('enableFieldValidators','img_largura',false);
+    //     self.df.formValidation('enableFieldValidators','img_altura',false);
+    //   }
+    // })
+    // .on('err.validator.fv', function(e, data) {
+    //   data.element
+    //       .data('fv.messages')
+    //       .find('.help-block[data-fv-for="' + data.field + '"]').hide()
+    //       .filter('[data-fv-validator="' + data.validator + '"]').show();
+    // });
 
     //Dropzone initialization
     Dropzone.autoDiscover = false;
@@ -502,10 +585,10 @@ new IOService({
          }
       },
       removedFile:function(file){
-        self.df.formValidation('updateStatus','has_images', 'NOT_VALIDATED')
+        self.fv[2].updateFieldStatus('has_images', 'NotValidated');
       },
       onSuccess:function(file,ret){
-        self.df.formValidation('revalidateField', 'has_images');
+        self.fv[2].revalidateField('has_images');
       }
     });
 
@@ -695,9 +778,9 @@ function addDimension(p){
   $('#img_largura').val('');
   $('#img_altura').val('');
   $('#img_prefix').val('').focus();
-  p.self.df.formValidation('updateStatus','img_largura','NOT_VALIDATED');
-  p.self.df.formValidation('updateStatus','img_altura','NOT_VALIDATED');
-  p.self.df.formValidation('updateStatus','img_prefix','NOT_VALIDATED');
+  self.dimensionsFv.updateFieldStatus('img_largura', 'NotValidated');
+  self.dimensionsFv.updateFieldStatus('img_altura', 'NotValidated');
+  self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
 }
 
 function getDimension(self){
@@ -761,7 +844,7 @@ function view(self){
             $('.__sortable-list').not('#__sl-main-group').find(".list-group-item[__val='"+i+"']")
             .appendTo($('#__sl-main-group'));
           });
-          self.df.formValidation('revalidateField','__cat_subcats');
+          self.dimensionsFv.updateFieldStatus('__cat_subcats', 'NotValidated');
           
           //zera a tabela de dimensões e atualiza
           let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));

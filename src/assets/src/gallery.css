@@ -4,10 +4,24 @@ small[data-fv-for="has_images"]{
   top:0;
 }
 
-i[data-fv-icon-for='has_images']{
+.imagens-step-content .form-group.fv-plugins-icon-container{
   position:absolute;
-  right:3px;
+  right:24px;
   top:0;
+}
+
+.imagens-step-content .fv-plugins-icon{
+  position: absolute;
+  right: -34px;
+  text-align: center;
+  top: -5px;
+}
+
+.categorias-step-content .fv-plugins-icon{
+  position: absolute;
+  right: -9px;
+  text-align: center;
+  top: -9px;
 }
 
 .__sortable-list{
