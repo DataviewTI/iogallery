@@ -19,13 +19,13 @@ class GallerySeeder extends Seeder
             'order' => Service::max('order')+1
           ]);
       }
-      //seta privilegios padrão para o user admin
-      $user = Sentinel::findById(1);
-      $user->addPermission('gallery.view');
-      $user->addPermission('gallery.create');
-      $user->addPermission('gallery.update');
-      $user->addPermission('gallery.delete');
-      $user->save();
+      //seta privilegios padrão para o role admin
+      $rolse = Sentinel::findRoleBySlug('admin');
+      $rolse->addPermission('gallery.view');
+      $rolse->addPermission('gallery.create');
+      $rolse->addPermission('gallery.update');
+      $rolse->addPermission('gallery.delete');
+      $rolse->save();
 
       //Adiciona a categoria e subcategorias padrão
       if(!Category::where('Category','Gallery')->exists()){
