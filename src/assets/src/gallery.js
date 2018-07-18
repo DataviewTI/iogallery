@@ -846,7 +846,7 @@ function view(self){
             $('.__sortable-list').not('#__sl-main-group').find(".list-group-item[__val='"+i+"']")
             .appendTo($('#__sl-main-group'));
           });
-          self.dimensionsFv.updateFieldStatus('__cat_subcats', 'NotValidated');
+          self.fv[1].revalidateField('__cat_subcats');
           
           //zera a tabela de dimensões e atualiza
           let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
