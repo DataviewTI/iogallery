@@ -20,9 +20,8 @@ new IOService({
     $('#add_dimension').on("click",function(e){
       e.preventDefault();
       self.fv.caller = 'dimensions';
-      self.dimensionsFv.addField('img_prefix', img_prefix);
-      self.dimensionsFv.addField('img_largura', img_largura);
-      self.dimensionsFv.addField('img_altura', img_altura);
+      self.dimensionsFv.enableValidator('img_prefix');
+
       self.dimensionsFv.validate().then(function(status) {
         console.log(status);
         
@@ -313,10 +312,8 @@ new IOService({
     $('#thumb_edit').on("click",function(e){
       e.preventDefault();
       self.fv.caller = 'dimensions';
-      self.dimensionsFv.addField('img_prefix', img_prefix);
-      self.dimensionsFv.removeField('img_prefix', img_prefix);
-      self.dimensionsFv.addField('img_largura', img_largura);
-      self.dimensionsFv.addField('img_altura', img_altura);
+      self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
+      self.dimensionsFv.disableValidator('img_prefix');
       self.dimensionsFv.validate().then(function(status) {
         console.log(status);
         
@@ -332,84 +329,6 @@ new IOService({
           $('#cancel_thumb_edit').trigger('click');
       });
     });
-
-    const checkPrefix = function() {
-      return {
-        validate: function(input){
-          let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
-  
-          if(prfs.includes(input.value.toLowerCase()))
-            return {
-              valid: false,
-              message: 'O Prefixo já existe'
-            }
-  
-            return {
-              valid: true,
-            }
-        }
-      };
-    };
-    
-    const thumbPrefix = function() {
-      return {
-        validate: function(input){
-          let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
-          if(!prfs.includes("thumb"))
-          return {
-              valid: false,
-              message: 'Prefixo thumb é obrigatório'
-          }
-            return {
-              valid: true,
-            }
-        }
-      };
-    };
-
-    let img_prefix = {
-      validators:{
-          checkPrefix:{
-          },
-          thumbPrefix:{
-          },
-          notEmpty:{
-            message: 'Informe o prefíxo da imagem!'
-          }
-      }
-    };
-    
-    let img_altura ={
-      validators:{
-        notEmpty:{
-          message: 'Informe a Altura'
-        },
-        greaterThan: {
-          min: 1,
-          message: 'Alt. Mínima 1px',
-        },
-        lessThan: {
-          max: 4000,
-          message: 'Alt. Máxima 4000px',
-        }
-      }
-    };
-
-    let img_largura ={
-      validators:{ 
-        notEmpty:{
-          message: 'Informe a Largura'
-        },
-        greaterThan: {
-          min: 1,
-          message: 'Larg. Mínima 1px',
-        },
-        lessThan: {
-          max: 4000,
-          message: 'Larg. Máxima 4000px',
-        }
-      }
-    };
 
     let form = document.getElementById(self.dfId);
     let fv1 = FormValidation.formValidation(
@@ -456,14 +375,97 @@ new IOService({
         },
     }).setLocale('pt_BR', FormValidation.locales.pt_BR)
     .on('core.validator.validated', function(event) {
-      console.log(event);
-      
+      // console.log(event);
     });
+
+    const checkPrefix = function() {
+      return {
+        validate: function(input){
+          let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
+  
+          if(prfs.includes(input.value.toLowerCase()))
+            return {
+              valid: false,
+              message: 'O Prefixo já existe'
+            }
+  
+            return {
+              valid: true,
+            }
+        }
+      };
+    };
+    
+    const thumbPrefix = function() {
+      return {
+        validate: function(input){
+          let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
+          if(!prfs.includes("thumb"))
+          return {
+              valid: false,
+              message: 'Prefixo thumb é obrigatório'
+          }
+            return {
+              valid: true,
+            }
+        }
+      };
+    };
 
     self.dimensionsFv = FormValidation.formValidation(
       form.querySelector('#dimension_container'),
       {
         fields: {
+          img_prefix: {
+            validators:{
+                checkPrefix:{
+                  enabled: true,
+                },
+                thumbPrefix:{
+                  enabled: true,
+                },
+                notEmpty:{
+                  enabled: true,
+                  message: 'Informe o prefíxo da imagem!'
+                }
+            }
+          },          
+          img_altura: {
+            validators:{
+              notEmpty:{
+                enabled: true,
+                message: 'Informe a Altura'
+              },
+              greaterThan: {
+                enabled: true,
+                min: 1,
+                message: 'Alt. Mínima 1px',
+              },
+              lessThan: {
+                enabled: true,
+                max: 4000,
+                message: 'Alt. Máxima 4000px',
+              }
+            }
+          },      
+          img_largura: {
+            validators:{
+              notEmpty:{
+                enabled: true, 
+                message: 'Informe a Largura'
+              },
+              greaterThan: {
+                enabled: true,
+                min: 1,
+                message: 'Larg. Mínima 1px',
+              },
+              lessThan: {
+                enabled: true,
+                max: 4000,
+                message: 'Larg. Máxima 4000px',
+              }
+            }
+          }
         },
         plugins: {
           trigger: new FormValidation.plugins.Trigger(),
