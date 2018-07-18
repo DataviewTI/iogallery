@@ -780,9 +780,9 @@ function addDimension(p){
   $('#img_largura').val('');
   $('#img_altura').val('');
   $('#img_prefix').val('').focus();
-  self.dimensionsFv.updateFieldStatus('img_largura', 'NotValidated');
-  self.dimensionsFv.updateFieldStatus('img_altura', 'NotValidated');
-  self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
+  p.self.dimensionsFv.updateFieldStatus('img_largura', 'NotValidated');
+  p.self.dimensionsFv.updateFieldStatus('img_altura', 'NotValidated');
+  p.self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
 }
 
 function getDimension(self){
@@ -852,7 +852,7 @@ function view(self){
           let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
           self.dimensions_dt.clear().draw();
           for(let s in __sizes.sizes){
-            addDimension(
+            addDimension( 
               {
                 self:self,
                 prefixo:s,
