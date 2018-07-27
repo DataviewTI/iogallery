@@ -1,7 +1,6 @@
 
-# Galeria de fotos para IntranetOne
-Galeria de fotos...
-IOGallery requires IntranetOne
+# Galeria de imagens para IntranetOne
+Galeria de imagens com opção de multiplas dimensões e recorte.
 ## Conteúdo
  
 ## Instalação
@@ -9,28 +8,22 @@ IOGallery requires IntranetOne
 ```sh
 composer require dataview/iogallery
 ```
-Instalar o IntranetOne com php artisan
 ```sh
-php artisan intranetone-gallery:install
-```
-
-## Assets
-  
-- Instale o pacote de assets da do serviço IOGallery via NPM
-
-```sh
-npm install assets-io-gallery --save
+php artisan io-gallery:install
 ```
 
 - Configure o webpack conforme abaixo 
 ```js
-let io = require('intranetone');
-let gallery = require('intranetone-gallery');
+...
+let gallery = require('io-gallery');
 io.compile({
   services:{
-    'gallery': new gallery()
+    ...
+    new gallery()
+    ...
   }
 });
+
 ```
 - Compile os assets e faça o cache
 ```sh
