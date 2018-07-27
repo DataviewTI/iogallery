@@ -23,8 +23,6 @@ new IOService({
       self.dimensionsFv.enableValidator('img_prefix');
 
       self.dimensionsFv.validate().then(function(status) {
-        console.log(status);
-        
         if(status === 'Valid')
           addDimension(
           {
@@ -315,7 +313,6 @@ new IOService({
       self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
       self.dimensionsFv.disableValidator('img_prefix');
       self.dimensionsFv.validate().then(function(status) {
-        console.log(status);
         
         if(status === 'Valid')
           self.dz.copy_params.sizes.thumb.w = $('#img_largura').val();
@@ -586,6 +583,23 @@ new IOService({
         sizes:{
          }
       },
+      crop:{
+        ready:(cr)=>{          
+          let img_dim = getDimension(self);
+          console.log(img_dim);
+          let w = img_dim.thumb.w
+          let h = img_dim.thumb.h
+          if(w>0 && h>0){
+            let r = gcd(w, h);
+            cr.aspect_ratio_x = w/r;
+            cr.aspect_ratio_y = h/r;
+          }
+          else{
+            cr.aspect_ratio_x = 1;
+            cr.aspect_ratio_y = 1;
+          }
+        }
+      },
       removedFile:function(file){
         self.fv[2].updateFieldStatus('has_images', 'NotValidated');
       },
@@ -593,137 +607,6 @@ new IOService({
         self.fv[2].revalidateField('has_images');
       }
     });
-
-    // modal window template
-    var modalTemplate = `
-    <div class="modal crop-modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content" style="">
-                <div class="modal-header">
-                    <h5 class="modal-title">Ajuste da Imagem</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" style=""> 
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="image-container" style="height: 60vh"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div class="row w-100">
-                        <div class="col-6 pl-0">
-                            <div class="btn-group" role="group" aria-label="Basic example">
-                                <button type="button" class="btn btn-default rotate-left"><i class="ico ico-rotate-left"></i></button>
-                                <button type="button" class="btn btn-default rotate-right"><i class="ico ico-rotate-right"></i></button>
-                            </div>
-
-                            <div class="btn-group" role="group" aria-label="Basic example">
-                                <button type="button" class="btn btn-default zoom-in"><i class="ico ico-zoom-in"></i></button>
-                                <button type="button" class="btn btn-default zoom-out"><i class="ico ico-zoom-out"></i></button>
-                            </div>
-                        </div>
-                        <div class="col-6 d-flex justify-content-end">
-                            <button type="button" class="btn btn-primary crop-upload" style="margin-right: 5px;">Salvar</button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    `;
-    
-    if(window.IntranetOne.gallery != undefined && window.IntranetOne.gallery.crop.activate){
-      // listen to thumbnail event to trigger crop actions
-      self.dz.on('thumbnail', function (file) {
-        if(file.upload != undefined){
-          // ignore files which were already cropped and re-rendered
-          // to prevent infinite loop
-          if (file.cropped) {
-              return;
-          }
-          // cache filename to re-assign it to cropped file
-          var cachedFilename = file.name;
-          // remove not cropped file from dropzone (we will replace it later)
-          self.dz.removeFile(file);
-          
-          // dynamically create modals to allow multiple files processing
-          var $cropperModal = $(modalTemplate);
-          // 'Crop and Upload' button in a modal
-          var $uploadCrop = $cropperModal.find('.crop-upload');
-          var $zoomIn = $cropperModal.find('.zoom-in');
-          var $zoomOut = $cropperModal.find('.zoom-out');
-          var $rotateLeft = $cropperModal.find('.rotate-left');
-          var $rotateRight = $cropperModal.find('.rotate-right');
-
-          var $img = $('<img style="max-width: 100%;"/>');
-
-          // initialize FileReader which reads uploaded file
-          var reader = new FileReader();
-          reader.onloadend = function () { 
-              // add uploaded and read image to modal
-              $cropperModal.find('.image-container').html($img);
-              $img.attr('src', reader.result);
-
-              // initialize cropper for uploaded image
-              var aspecRatio = window.IntranetOne.gallery.crop.aspect_ratio_x / window.IntranetOne.gallery.crop.aspect_ratio_y;
-              $img.cropper({
-                  viewMode: 0, 
-                  aspectRatio: aspecRatio,
-                  // autoCropArea: 1,
-                  movable: false,
-                  cropBoxResizable: true,
-                  // minContainerWidth: 850
-              });
-          };
-          // read uploaded file (triggers code above)
-          reader.readAsDataURL(file);
-
-          $cropperModal.modal('show');
-
-          // listener for 'Crop and Upload' button in modal
-          $uploadCrop.on('click', function() {
-              // get cropped image data
-              var blob = $img.cropper('getCroppedCanvas').toDataURL();
-              // transform it to Blob object
-              var newFile = dataURItoBlob(blob);
-              // set 'cropped to true' (so that we don't get to that listener again)
-              newFile.cropped = true;
-              // assign original filename
-              newFile.name = cachedFilename;
-
-              // add cropped file to dropzone
-              self.dz.addFile(newFile);
-              // upload cropped file with dropzone
-              self.dz.processQueue();
-              $cropperModal.modal('hide');
-          });
-
-          $zoomIn.on('click', function() {
-            var cropper = $img.data('cropper');
-            cropper.zoom(0.1);
-          });
-
-          $zoomOut.on('click', function() {
-            var cropper = $img.data('cropper');
-            cropper.zoom(-0.1);
-          });
-
-          $rotateLeft.on('click', function() {
-            var cropper = $img.data('cropper');
-            cropper.rotate(-90);
-          });
-
-          $rotateRight.on('click', function() {
-            var cropper = $img.data('cropper');
-            cropper.rotate(90);
-          });  
-        }
-      });
-    }
 
     //need to transform wizardActions in a method of Class
     self.wizardActions(function(){
@@ -815,6 +698,9 @@ function getCategories(param){
   });	
 }
 
+function gcd(a, b) {
+  return (b == 0) ? a : gcd (b, a%b);
+}
 
 function preview(param){
   alert('futuramente implementar uma vizualização com photoswipe');
@@ -869,16 +755,4 @@ function view(self){
           console.log('executa algo no erro do callback');
       }
     }
-}
-
-
-// transform cropper dataURI output to a Blob which Dropzone accepts
-function dataURItoBlob(dataURI) {
-  var byteString = atob(dataURI.split(',')[1]);
-  var ab = new ArrayBuffer(byteString.length);
-  var ia = new Uint8Array(ab);
-  for (var i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-  }
-  return new Blob([ab], { type: 'image/jpeg' });
 }

@@ -8,7 +8,6 @@
 @stop
 
 @section('main-heading')
-  Galeria de Imagens
 @stop
 
 @section('main-content')
