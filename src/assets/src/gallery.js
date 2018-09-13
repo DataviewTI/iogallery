@@ -2,6 +2,33 @@ new IOService({
     name:'Gallery',
   },
   function(self){
+    self.loadedVideo = null;
+
+    $('button#save_video').click(function(event) {
+      event.preventDefault();
+      HoldOn.open({message:"Aguarde...",theme:'sk-bounce'});
+
+      // self.loadedVideo.dbId = ""; 
+
+      self.loadedVideo.infos.title = $( "input#video_title" ).val();
+      self.loadedVideo.infos.description = $( "input#video_description" ).val();
+
+      if(self.loadedVideo.dbId != null){   
+        $( ".video-box" ).each(function( index ) {
+          
+          var video = $(this).data('video-data');
+          if(video.dbId == self.loadedVideo.dbId){
+            $(this).attr('data-video-data',JSON.stringify(self.loadedVideo));
+          }
+        });
+      }else{
+        addVideoToList(self.loadedVideo, self);
+      }
+
+      videoUnload(self);
+
+      HoldOn.close();
+    });
 
     //mututor observer for attributes
     $('#featured').attrchange(function(attrName) {
@@ -35,6 +62,11 @@ new IOService({
     });
 
     Sortable.create(document.getElementById('custom-dropzone'),{
+      animation: 250,
+      handle: ".dz-reorder",
+    });
+
+    Sortable.create(document.getElementById('video-list'),{
       animation: 250,
       handle: ".dz-reorder",
     });
@@ -514,6 +546,7 @@ new IOService({
           has_images:{
             validators:{
               callback:{
+                enabled: false, 
                 message: 'A galeria deve ter no mínimo uma imagem!',
                 callback: function(value, validator, $field){
                   
@@ -541,35 +574,117 @@ new IOService({
         },
     }).setLocale('pt_BR', FormValidation.locales.pt_BR);
 
-    self.fv = [fv1, fv2, fv3];
+    let fv4 = FormValidation.formValidation(
+      form.querySelector('.step-pane[data-step="4"]'),
+      {
+        fields: {
+          imageorvideo:{
+            validators:{
+              callback:{
+                message: 'O popup deve conter uma imagem ou um vídeo!',
+                callback: function(input){
+                  
+                  if(self.dz.files.length==0 && $('.video-box').length == 0){
+                    toastr["error"]("O popup deve conter uma imagem ou um vídeo!")
+                    return false;
+                  }
+                  return true
+                }
+              }
+            }
+          },
+          video_url:{
+            validators:{
+              promise:{
+                promise: function(input){
+                  
+                  let dfd   = new $.Deferred(), 
+                      video = getVideoInfos($('#video_url').val()),
+                      prom;
 
-    // FormValidation initialization
-    // self.fv = self.df.formValidation({
-    //   locale: 'pt_BR',
-    //   excluded: 'disabled',
-    //   framework: 'bootstrap',  
-    //   icon: {
-    //     valid: 'fv-ico ico-check',
-    //     invalid: 'fv-ico ico-close',
-    //     validating: 'fv-ico ico-gear ico-spin'
-    //   },
-    //   fields:{
+                      if(video.source != null){
+                    $('#embed-container-video').addClass('loading');
+                    switch(video.source){
+                      case 'youtube':
+                        prom = getYoutubeVideoPromise(video,self);
+                        break;
+                      case 'facebook':
+                        prom = getFacebookVideoPromise(video,self);
+                        break;
+                    }
+                      
+                    prom.then(resolve=>{
+                      resolve.callback(resolve);
+                      $('#video_title').val(video.infos.title);
+                      $('#video_description').val(video.infos.description);
+                      $('#video_start_at').removeAttr('disabled');
+                      $('#btn-get-current-time').removeClass('__disabled mouse-off');
+  
+                      makeVideoThumbs(video,self);
+                      if(self.loadedVideo == null)
+                        self.loadedVideo = video;
+                      
+                      $('#loaded-video').val(JSON.stringify(video));
+                      // $('#video_data').val(JSON.stringify(video));
+                      dfd.resolve({ valid: true });
+                      
+                      if($('#video_url').attr('data-loaded')!==undefined){
+                        let vdata = JSON.parse($('#video_url').attr('data-loaded'));
+                        //what need to call twice??
+                        let vthumb = JSON.parse(JSON.parse($('#video_url').attr('data-thumb')));
+                        $('#video_title').val(vdata.title);
+                        $('#video_description').val(vdata.description);
+                        $($('.container-video-thumb .video-thumb')[vthumb.pos]).css({
+                          'backgroundImage': "url('"+vthumb.url+"')"
+                        }).trigger('click');
+
+                        $('#video_url').removeAttr('data-loaded').removeAttr('data-thumb');
+                      }
+                      self.fv[3].revalidateField('imageorvideo');
+                      return dfd.promise();
+                    }).
+                    catch(reject=>{
+                      console.log(reject);
+                      reject.callback(reject);
+                      let msg = reject.data != null ? reject.data : "Este link não corresponde a nenhum vídeo válido"
+                      dfd.reject({
+                        valid:false,
+                        message: msg
+                      });
+                    });
+                  }
+                  else{
+                    videoUnload(self);
+                    if($('#video_url').val()=='')
+                      dfd.resolve({ valid: true });
+                    else
+                    dfd.reject({
+                      valid:false,
+                      message: "Este link não corresponde a nenhum vídeo válido"
+                    });
+
+                  }
+                  return dfd.promise();
+                },
+                message: 'O link do vídeo informado é inválido',
+              },
+            }
+          },
+        },
+        plugins: {
+          trigger: new FormValidation.plugins.Trigger(),
+          submitButton: new FormValidation.plugins.SubmitButton(),
+          // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
+          bootstrap: new FormValidation.plugins.Bootstrap(),
+          icon: new FormValidation.plugins.Icon({
+            valid: 'fv-ico ico-check',
+            invalid: 'fv-ico ico-close',
+            validating: 'fv-ico ico-gear ico-spin'
+          }),
+        },
+    }).setLocale('pt_BR', FormValidation.locales.pt_BR);
         
-    //   }
-    // })
-    // .on('err.field.fv', function(e, data) {
-    //   if(self.fv.caller=='wizard'){
-    //     self.df.formValidation('enableFieldValidators','img_prefix',false);
-    //     self.df.formValidation('enableFieldValidators','img_largura',false);
-    //     self.df.formValidation('enableFieldValidators','img_altura',false);
-    //   }
-    // })
-    // .on('err.validator.fv', function(e, data) {
-    //   data.element
-    //       .data('fv.messages')
-    //       .find('.help-block[data-fv-for="' + data.field + '"]').hide()
-    //       .filter('[data-fv-validator="' + data.validator + '"]').show();
-    // });
+    self.fv = [fv1, fv2, fv3, fv4];
 
     //Dropzone initialization
     Dropzone.autoDiscover = false;
@@ -583,41 +698,34 @@ new IOService({
         sizes:{
          }
       },
-      crop:{
-        ready:(cr)=>{          
-          let img_dim = getDimension(self);
-          console.log(img_dim);
-          let w = img_dim.thumb.w
-          let h = img_dim.thumb.h
-          if(w>0 && h>0){
-            let r = gcd(w, h);
-            cr.aspect_ratio_x = w/r;
-            cr.aspect_ratio_y = h/r;
-          }
-          else{
-            cr.aspect_ratio_x = 1;
-            cr.aspect_ratio_y = 1;
-          }
-        }
-      },
       removedFile:function(file){
         self.fv[2].updateFieldStatus('has_images', 'NotValidated');
       },
       onSuccess:function(file,ret){
-        self.fv[2].revalidateField('has_images');
+        // self.fv[2].revalidateField('has_images');
       }
     });
 
     //need to transform wizardActions in a method of Class
     self.wizardActions(function(){
-       let img_dim = getDimension(self);
-       self.dz.copy_params.sizes = img_dim;
-       self.dz.options.thumbnailHeight = img_dim.thumb.h;
-       self.dz.options.thumbnailWidth = img_dim.thumb.w;
+      let img_dim = getDimension(self);
+      self.dz.copy_params.sizes = img_dim;
+      self.dz.options.thumbnailHeight = img_dim.thumb.h;
+      self.dz.options.thumbnailWidth = img_dim.thumb.w;
 
       $("[name='__dz_images']").val(JSON.stringify(self.dz.getOrderedDataImages()));
       $("[name='__dz_copy_params']").val(JSON.stringify(self.dz.copy_params));
-
+      
+      var vdata = Array();
+      $( ".video-box" ).each(function( index ) {
+        var video = JSON.parse($(this).attr('data-video-data'));
+        video.order = index;
+        vdata.push(video); 
+        console.log(video);
+        
+      });
+      $('#videos_data').val(JSON.stringify(vdata))
+      
       var cats = getCatAndSubCats();
       $('#__cat_subcats').val(cats);
       $(document.createElement('input')).prop('type','hidden').prop('name','main_cat').val(cats[0]).appendTo(self.df);
@@ -636,6 +744,8 @@ new IOService({
       $(".aanjulena-btn-toggle").aaDefaultState();
 
       self.dz.removeAllFiles(true);
+      videoUnload(self);
+      $('#video-list .video-box').remove();
 
     }
 
@@ -651,6 +761,7 @@ new IOService({
   ███████╗╚██████╔╝╚██████╗██║  ██║███████╗    ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝██████╔╝███████║
   ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝    ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
 function addDimension(p){
   p.self.dimensions_dt.row.add([
       p.prefixo,
@@ -702,6 +813,213 @@ function gcd(a, b) {
   return (b == 0) ? a : gcd (b, a%b);
 }
 
+function makeVideoThumbs(video,self){
+
+  let container = $('.container-video-thumb');
+  container.find('.video-thumb').remove();
+  let new_div = $(document.createElement("div")).addClass('video-thumb col-12')
+                .append($(document.createElement("img")));
+
+  //se existe alguma foto na galeria, add a primeira
+  if(self.dz.files.length){
+
+    var $videoThumb = (
+      new_div.clone().on('click',function(){
+        $(".video-thumb").removeClass('active');
+        $(this).addClass('active');
+      })
+      .attrchange(function(attrName){
+        if(attrName == 'class'){
+          if($(this).hasClass('active')){
+            self.loadedVideo.thumbnail = {pos:$(this).attr('data-pos'), url:($(self.dz.files[0].previewTemplate).find('[data-dz-thumbnail]').attr('src'))};
+          }
+        }
+      }) 
+    );
+    $videoThumb.find('img').attr('src', $(self.dz.files[0].previewTemplate).find('[data-dz-thumbnail]').attr('src')).css({'width':'100%', 'height':'auto'});
+    container.append($videoThumb);
+    
+  }
+
+  //cria as thumbs de acordo com o retorno de data.thumbs
+   //$('#video_start_at').attr('data-video-duration',null);
+  video.thumbs.forEach(function(url,i){  
+    var $videoThumb = (
+      new_div.clone().on('click',function(){
+        $(".video-thumb").removeClass('active');
+        $(this).addClass('active');
+      })
+      .attrchange(function(attrName){
+        if(attrName == 'class'){
+          if($(this).hasClass('active')){
+            self.loadedVideo.thumbnail = {pos:$(this).attr('data-pos'), url:url};
+          }
+        }
+      }) 
+    );
+    $videoThumb.find('img').attr('src', url).css({'width':'100%', 'height':'auto'});
+    container.append($videoThumb);
+  });
+
+  container.find('.video-thumb').first().addClass('active');
+  container.find('.video-thumb').each(function(i,obj){
+    $(obj).attr('data-pos',i);
+  });
+}
+
+function getYoutubeVideoPromise(video,self){
+  let _resolve = function(res){
+    let player = $('#'+video.source+'-player');
+    player.removeClass('d-none').attr('src',video.embed);
+    
+    let _ytp = new YT.Player('youtube-player',{
+      events: {
+        'onReady': function(_t){
+          self.VPlayer = _t.target;
+          self.VPlayer.__getCurrent = _t.target.getCurrentTime;
+          self.VPlayer.__play = _t.target.playVideo;
+          self.VPlayer.__pause = _t.target.pauseVideo;
+        }
+      }
+    });
+
+    video.infos = {
+      title:res.data.items[0].snippet.title,
+      description:res.data.items[0].snippet.description,
+      duration:moment.duration(res.data.items[0].contentDetails.duration,'seconds').format('hh:mm:ss',{trim:false}),
+    }
+    for(let i=0;i<3;i++)
+      video.thumbs.push('https://img.youtube.com/vi/'+video.id+'/'+i+'.jpg');
+  }
+
+  let _reject = function(res){
+    videoUnload(self);
+  }
+  return new Promise((resolve,reject) => {
+      //$('#embed-container-video').addClass('loading');
+      $.ajax({
+        url: ['https://www.googleapis.com/youtube/v3/videos',
+              '?key=AIzaSyB2-i5P7MPuioxONBQOZwgC7vWEeJ4PnIo',
+              '&part=snippet,contentDetails',
+              '&id='+video.id
+        ].join(''),
+        type:'GET',
+        success: function(ret){
+            if(ret.items.length)
+              resolve({state:true,data:ret,callback:_resolve});
+            else
+              reject({state:false,data:'o link informado está quebrado ou é inválido!',callback:_reject});
+            },
+            error: function(ret){
+              reject({state:false,data:'o link informado está quebrado ou é inválido!',callback:_reject});
+            }
+          }).done(function(){
+        });
+      });
+  }
+
+function getFacebookVideoPromise(video,self){
+  let _resolve = function(res){
+    let player = $('#'+video.source+'-player');
+    player.removeClass('d-none').attr('data-href',video.url);
+    FB.XFBML.parse(document.getElementById('facebook-player').parentNode);
+    self.VPlayer = null;
+    FB.Event.subscribe('xfbml.ready', function(msg) {
+      if (msg.type === 'video') {
+        self.VPlayer = msg.instance;
+        self.VPlayer.__getCurrent = msg.instance.getCurrentPosition;
+        self.VPlayer.__play = msg.instance.play;
+        self.VPlayer.__pause = msg.instance.pause;
+      }
+    });
+    video.infos = {
+      title:res.data.title,
+      description:res.data.description,
+      duration:moment.duration(parseInt(res.data.length),'seconds').format('hh:mm:ss'),
+    }
+    
+    video.embed = video.embed+'&width='+res.data.format[0].width
+    let max_video_number = (res.data.thumbnails.data.length>=3) ? 3 : res.data.thumbnails.data.length;
+    for(let i=0;i<max_video_number;i++)
+      video.thumbs.push(res.data.thumbnails.data[i].uri);
+  }
+
+  let _reject = function(res){
+    videoUnload(self);
+  }
+
+  return new Promise((resolve,reject) => {
+    FB.api(
+      "/"+video.id+'?fields=thumbnails,description,length,embeddable,embed_html,format,title&access_token='+window.IntranetOne.social_media.facebook.long_token,
+      function (ret){
+        if(ret && !ret.error){
+          resolve({state:true,data:ret,callback:_resolve});
+        }
+        else{
+          if(ret.error.code == 100)
+            reject({state:false,data:"O video deste link não permite sua utilização",callback:_reject});
+          console.log('entrou no erro');
+          reject({state:false,data:null,callback:_reject});
+        }
+      });
+
+  });
+
+}
+
+function videoUnload(self){
+  self.fv[3].revalidateField('imageorvideo');
+
+  $('#embed-container-video').removeClass('loading');
+  $('.vplayer').attr('src','').addClass('d-none');
+  $('.vplayer').attr('data-href','').addClass('d-none');
+
+  self.VPlayer = null;
+  $('.container-video-thumb .video-thumb').remove();
+  $('#video_title, #video_description, #videos_data, #video_url').val('');
+  self.fv[3].resetField('video_url');
+  self.fv[3].resetField('imageorvideo');
+
+  $('#btn-get-current-time').addClass('__disabled mouse-off');
+
+  self.loadedVideo = null;
+}
+
+function getVideoInfos(url){
+  let rgx_youtube = /(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  let rgx_facebook = /^http(?:s?):\/\/(?:www\.|web\.|m\.)?facebook\.com\/([A-z0-9\.]+)\/videos(?:\/[0-9A-z].+)?\/(\d+)(?:.+)?$/
+
+  if(rgx_youtube.test(url))
+    return {
+      source:'youtube',
+      id:url.match(rgx_youtube)[1],
+      url:url,
+      embed:[
+        'https://www.youtube.com/embed/'+url.match(rgx_youtube)[1],
+        '?enablejsapi=1',
+        '&origin='+document.location.origin
+      ].join(''),
+      thumbs:[]        
+  }
+
+  if(rgx_facebook.test(url)){
+    let url_match = url.match(rgx_facebook);
+    return {
+        source:'facebook',
+        id:url_match[2],
+        url:url,
+        embed:[
+          'https://www.facebook.com/plugins/video.php',
+          '?href=https%3A%2F%2Fwww.facebook.com%2F',
+          url_match[1]+'%2Fvideos%2F'+url_match[2]
+        ].join(''),
+        thumbs:[]        
+      }
+  }
+
+    return {source:null,id:null,thumbs:[],embed:null,url:null};
+}
+
 function preview(param){
   alert('futuramente implementar uma vizualização com photoswipe');
   //var win = window.open(document.location.origin+'/reader/'+param.id+'/teste-preview', '_blank');
@@ -710,49 +1028,109 @@ function preview(param){
 //CRUD CallBacks
 function view(self){
   return{
-      onSuccess:function(data){
-        $("[name='title']").val(data.title);
-        $("[name='description']").val(data.description);
-        $("[name='date_start']").pickadate('picker').set('select',new Date(data.date_start));
-        if(data.date_end!=null)
-          $("[name='date_end']").pickadate('picker').set('select',new Date(data.date_end));
-        $("#featured").aaToggle(data.featured);
+    onSuccess:function(data){
+      
+      $("[name='title']").val(data.title);
+      $("[name='description']").val(data.description);
+      $("[name='date_start']").pickadate('picker').set('select',new Date(data.date_start));
 
+      if(data.date_end!=null)
+        $("[name='date_end']").pickadate('picker').set('select',new Date(data.date_end));
 
-          //reload imagens 
-          self.dz.removeAllFiles(true);
+      $("#featured").aaToggle(data.featured);
 
-          //zera as categorias no unload
-          let attrcats = []; 
-          data.categories.forEach(function(obj){
-            attrcats.push(obj.id)
-          });
-           
-          attrcats.forEach(function(i){
-            $('.__sortable-list').not('#__sl-main-group').find(".list-group-item[__val='"+i+"']")
-            .appendTo($('#__sl-main-group'));
-          });
-          self.fv[1].revalidateField('__cat_subcats');
+      //reload imagens 
+      self.dz.removeAllFiles(true);
+
+      //zera as categorias no unload
+      let attrcats = []; 
+      data.categories.forEach(function(obj){
+        attrcats.push(obj.id)
+      });
           
-          //zera a tabela de dimensões e atualiza
-          let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
-          self.dimensions_dt.clear().draw();
-          for(let s in __sizes.sizes){
-            addDimension( 
-              {
-                self:self,
-                prefixo:s,
-                largura:__sizes.sizes[s].w,
-                altura:__sizes.sizes[s].h,
-              })
-          };
+      attrcats.forEach(function(i){
+        $('.__sortable-list').not('#__sl-main-group').find(".list-group-item[__val='"+i+"']")
+        .appendTo($('#__sl-main-group'));
+      });
+      self.fv[1].revalidateField('__cat_subcats');
+        
+      //zera a tabela de dimensões e atualiza
+      let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
+      self.dimensions_dt.clear().draw();
+      for(let s in __sizes.sizes){
+        addDimension( 
+          {
+            self:self,
+            prefixo:s,
+            largura:__sizes.sizes[s].w,
+            altura:__sizes.sizes[s].h,
+          })
+      };
 
-          if(data.group!=null){
-            self.dz.reloadImages(data);
-          }
-        },
-        onError:function(self){
-          console.log('executa algo no erro do callback');
+      if(data.group!=null){
+        self.dz.reloadImages(data);
+
+        data.group.videos.forEach(function (item, index) {
+          item.data = JSON.parse(item.data);
+          item.data.dbId = item.id;
+          addVideoToList(item.data, self);
+        });
+
       }
+    },
+      onError:function(self){
+        console.log('executa algo no erro do callback');
     }
+  }
+}
+
+function addVideoToList(video, self){
+  // console.log(video);
+
+  var $newVideo = $(`
+    <div class="video-box col-2" data-video-data='`+JSON.stringify(video)+`'>
+      <div class='dz-buttons-container d-flex justify-content-end mr-1'>
+        <span class="dv-btn-circle dz-delete ml-1 bg-danger text-white" data-dz-delete="" data-toggle='tooltip' data-placement='top' title='Remover'>
+          <i class='ico ico-trash'></i>
+        </span>
+        <span class="dv-btn-circle dz-reorder ml-1 bg-info text-white" data-dz-reorder data-toggle='tooltip' data-placement='top' title='Mover'>
+          <i class='ico ico-move'></i>
+        </span>
+        <span class="dv-btn-circle ml-1 dz-edit bg-danger text-white" data-toggle="tooltip" data-placement="top" title="" data-original-title="Editar">
+          <i class="ico ico-edit"></i>
+        </span>
+      </div>
+      <img src="`+video.thumbnail.url+`" alt="" style="width: 100%">
+    </div> 
+  `)
+  .appendTo('#video-list');
+
+  $newVideo.find('.dz-delete').on( "click", function() {
+    swal({
+      title:"Apagar Video",
+      text:"Tem certeza que deseja remover o vídeo acima?",
+      imageUrl: video.thumbnail.url,
+      imageAlt: '',
+      showCancelButton: true,
+    }).then((result) => {
+      if(result.value==true) {
+        $( this ).parents('.video-box').remove();
+      }
+    })
+  });
+
+  $newVideo.find('.dz-edit').on( "click", function() {
+    var video_data = JSON.parse($( this ).parents('.video-box').attr('data-video-data')); 
+    $('#video_url').val(video_data.url);
+    self.fv[3].revalidateField('video_url').then(function () {
+      $('#video_title').val(video_data.infos.title);
+      $('#video_description').val(video_data.infos.description);
+
+      $(".video-thumb").removeClass('active');
+      $('.video-thumb[data-pos="'+video_data.thumbnail.pos+'"]').addClass('active');
+      self.loadedVideo = video_data;
+    });
+
+  });
+ 
 }

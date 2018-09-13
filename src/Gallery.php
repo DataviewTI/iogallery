@@ -28,7 +28,7 @@ class Gallery extends IOModel
 
     static::created(function (Gallery $obj) {
       $group = new Group([
-        'group' => "Album da Galeria ".$obj->id,
+        'group' => "Fotos e Videos da Galeria ".$obj->id,
         'sizes' => $obj->getAppend("sizes")
       ]);
       $group->save();

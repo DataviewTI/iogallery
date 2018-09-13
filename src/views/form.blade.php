@@ -12,6 +12,7 @@
           ]
         ],
         ["name" => "Imagens", "view"=> "IntranetOne::io.forms.form-images"],
+        ["name" => "Videos","view"=> "IntranetOne::io.forms.form-videos"],
       ]
   ])
   @endcomponent

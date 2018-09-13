@@ -6,6 +6,7 @@ function IOGallery(params={}){
   let dep = {
     gallery: 'node_modules/intranetone-gallery/src/',
     moment: 'node_modules/moment/',
+    momentdf: 'node_modules/moment-duration-format/lib/',
     sortable: 'node_modules/sortablejs/',
     cropper: 'node_modules/cropperjs/dist/',
     jquerycropper: 'node_modules/jquery-cropper/dist/',
@@ -29,6 +30,7 @@ function IOGallery(params={}){
       IO.dep.io.toastr + 'toastr.min.css',
       IO.src.io.css + 'toastr.css',
       dep.cropper + 'cropper.css',
+      IO.src.io.root + 'forms/videos-form.css',
       dep.gallery + 'gallery.css',
     ], IO.dest.io.root + 'services/io-gallery.min.css');
 
@@ -44,6 +46,7 @@ function IOGallery(params={}){
     mix.scripts([
       dep.moment + 'min/moment.min.js',
       IO.src.io.vendors + 'moment/moment-pt-br.js',
+      dep.momentdf +'moment-duration-format.js',
       dep.cropper + 'cropper.js',
       dep.jquerycropper + 'jquery-cropper.js',
     ], IO.dest.io.root + 'services/io-gallery-mix.min.js');

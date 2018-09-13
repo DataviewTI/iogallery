@@ -50,6 +50,7 @@
   @endsection
 
 @section('footer_scripts')
+@include('IntranetOne::base.social.google-youtube')
 
 <script src="{{ asset('js/pickadate-full.min.js') }}" type="text/javascript"></script>
 <script src="{{ asset('io/services/io-gallery-babel.min.js') }}" type="text/javascript"></script>

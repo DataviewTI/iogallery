@@ -8,6 +8,7 @@ use Dataview\IntranetOne\Group;
 use App\Http\Requests;
 use Dataview\IOGallery\GalleryRequest;
 use Dataview\IOGallery\Gallery;
+use Dataview\IntranetOne\Video;
 use Validator;
 use DataTables;
 use Session;
@@ -35,13 +36,12 @@ class GalleryController extends IOController{
       }
     ])
     ->get();
-  
+
     return Datatables::of(collect($query))->make(true);
   }
 
   public function teste(){
 	}
-
 
 	public function create(GalleryRequest $request){
     $check = $this->__create($request);
@@ -49,14 +49,30 @@ class GalleryController extends IOController{
       return response()->json(['errors' => $check['errors'] ], $check['code']);	
       
     $obj = new Gallery($request->all());
-//    Gallery::create
     $obj->setAppend("sizes",$request->__dz_copy_params);
-    //$obj = Gallery::create($request->all());
     $obj->save();
 
     $obj->categories()->sync($request->__cat_subcats_converted);
     $obj->group->manageImages(json_decode($request->__dz_images),json_decode($request->__dz_copy_params));
     $obj->save();
+
+    if($request->videos_data != null){
+      $_vdata = json_decode($request->videos_data);
+
+      foreach ($_vdata as $index => $video) {
+        $obj->group->videos()->save(new Video([
+          'url' => $video->url,
+          'order' => $video->order,
+          'source' => $video->source,
+          'title' => $video->infos->title,
+          'description' => $video->infos->description,
+          'thumbnail' => json_encode($video->thumbnail),
+          'data' => json_encode($video),
+        ]));
+
+      }
+
+    }
 
     return response()->json(['success'=>true,'data'=>null]);
 	}
@@ -75,7 +91,8 @@ class GalleryController extends IOController{
         },
         'group'=>function($query){
           $query->select('groups.id','sizes')
-          ->with('files');
+          ->with('files')
+          ->with('videos');
         },
       ])
       ->orderBy('date_start','desc')
@@ -104,16 +121,18 @@ class GalleryController extends IOController{
       if($_old->group != null){
         $_old->group->sizes = $_new->sizes;
         $_old->group->manageImages(json_decode($_new->__dz_images),json_decode($_new->__dz_copy_params));
+        $_old->group->manageVideos(json_decode($_new->videos_data));
         $_old->group->save();
       }
       else
 				if(count(json_decode($_new->__dz_images))>0){
 					$_old->group()->associate(Group::create([
-            'group' => "Album da Galeria ".$obj->id,
+            'group' => "Fotos e Videos da Galeria ".$obj->id,
             'sizes' => $_new->__dz_copy_params
             ])
           );
 					$_old->group->manageImages(json_decode($_new->__dz_images),json_decode($_new->__dz_copy_params));
+          $_old->group->manageVideos(json_decode($_new->videos_data));
 				}
 		
 			$_old->save();
