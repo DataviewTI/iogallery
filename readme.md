@@ -17,11 +17,11 @@ php artisan io-gallery:install
 ...
 let gallery = require('io-gallery');
 io.compile({
-  services:{
+  services:[
     ...
-    new gallery()
+    new gallery(),
     ...
-  }
+  ]
 });
 
 ```
