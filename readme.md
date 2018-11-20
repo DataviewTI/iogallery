@@ -15,7 +15,7 @@ php artisan io-gallery:install
 - Configure o webpack conforme abaixo 
 ```js
 ...
-let gallery = require('io-gallery');
+let gallery = require('intranetone-gallery');
 io.compile({
   services:[
     ...
