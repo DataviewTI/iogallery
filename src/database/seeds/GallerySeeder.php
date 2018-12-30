@@ -19,6 +19,14 @@ class GallerySeeder extends Seeder
             'order' => Service::max('order')+1
           ]);
       }
+      //seta privilegios padrão para o user odin
+      $odinRole = Sentinel::findRoleBySlug('odin');
+      $odinRole->addPermission('gallery.view');
+      $odinRole->addPermission('gallery.create');
+      $odinRole->addPermission('gallery.update');
+      $odinRole->addPermission('gallery.delete');
+      $odinRole->save();
+
       //seta privilegios padrão para o role admin
       $adminRole = Sentinel::findRoleBySlug('admin');
       $adminRole->addPermission('gallery.view');
