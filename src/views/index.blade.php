@@ -4,7 +4,6 @@
 @section('header_styles')
   <link rel="stylesheet" type="text/css" href="{{ asset('css/pickadate-full.min.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ asset('io/services/io-gallery.min.css') }}">
-</style>
 @stop
 
 @section('main-heading')

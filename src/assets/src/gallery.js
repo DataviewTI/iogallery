@@ -72,6 +72,7 @@ new IOService({
     });
 
     ['__sl-box-left-1','__sl-box-left-2','__sl-box-left-3','__sl-main-group'].forEach(function(obj){
+      console.log(document.getElementById(obj))
       if(document.getElementById(obj)!=null)
         Sortable.create(document.getElementById(obj),{
           handle: ".__sl-handle",
@@ -218,16 +219,18 @@ new IOService({
       }
     },
     {targets:'__dt_s',width: "2%",orderable:false,className:"text-center",render:function(data,type,row){
+      console.log('data',data)
       if(data.sizes!=''){
-        data = JSON.parse(data.sizes.replace(/&quot;/g,'"'));
-        let __sizes = [];
-        let s;
-        for(s in data.sizes){
-          __sizes.push(s+': '+data.sizes[s].w+'x'+data.sizes[s].h);
-        }
-        return self.dt.addDTIcon({ico:'ico-structure',
-        title:"<span class = 'text-left'>"+(__sizes.join('<br>'))+"</span>",
-        value:1,pos:'right',_class:'text-primary text-normal',html:true});
+        // data = JSON.parse(data.sizes.replace(/&quot;/g,'"'));
+        // let __sizes = [];
+        // let s;
+        // for(s in data.sizes){
+        //   __sizes.push(s+': '+data.sizes[s].w+'x'+data.sizes[s].h);
+        // }
+        // return self.dt.addDTIcon({ico:'ico-structure',
+        // title:"<span class = 'text-left'>"+(__sizes.join('<br>'))+"</span>",
+        // value:1,pos:'right',_class:'text-primary text-normal',html:true});
+        return "";
       }
       else
         return "";
@@ -1055,8 +1058,12 @@ function view(self){
       self.fv[1].revalidateField('__cat_subcats');
         
       //zera a tabela de dimensões e atualiza
-      let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
+
+      console.log('no view', data)
+      // let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
+      let __sizes = data.group.sizes;
       self.dimensions_dt.clear().draw();
+
       for(let s in __sizes.sizes){
         addDimension( 
           {

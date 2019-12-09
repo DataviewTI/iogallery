@@ -18,6 +18,9 @@ Route::get('teste',function(){
   return $categories;
 });
 
+Route::get('gallery/{id?}',function($id=null){
+  return view('Gallery::fe.gallery',['id'=>$id]);
+});
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
