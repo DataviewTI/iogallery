@@ -14,6 +14,12 @@ composer require dataview/iogallery
 php artisan io-gallery:install
 ```
 
+- necessária atualização dos packages npm
+
+```sh
+npm update
+```
+
 - Configure o webpack conforme abaixo
 
 ```js
