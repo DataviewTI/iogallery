@@ -14,6 +14,7 @@ class GallerySeeder extends Seeder
         Service::insert([
             'service' => "Gallery",
             'alias' =>'gallery',
+            'trans' =>'Galeria',
             'ico' => 'ico-image',
             'description' => 'Galeria de Imagens',
             'order' => Service::max('order')+1
