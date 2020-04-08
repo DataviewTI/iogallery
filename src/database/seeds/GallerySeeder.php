@@ -5,6 +5,7 @@ use Illuminate\Database\Seeder;
 use Dataview\IntranetOne\Service;
 use Sentinel;
 use Dataview\IntranetOne\Category;
+use Illuminate\Support\Str;
 
 class GallerySeeder extends Seeder
 {
@@ -52,7 +53,7 @@ class GallerySeeder extends Seeder
             'category_id' => $gal->id,
             'category' => $c,
             'erasable'=>false,
-            'category_slug' => str_slug($c),
+            'category_slug' => Str::slug($c),
             'order' => (Category::where('category_id',$gal->id)->max('order'))+1
           ]);
         }
