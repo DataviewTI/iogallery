@@ -86,7 +86,8 @@ class GalleryController extends IOController{
       ->with([
         'categories'=>function($query){
           $query->select('categories.id','main','category','categories.category_id')
-          ->orderBy('main','category')
+          ->orderBy('main')
+          ->orderBy('category')
           ->with('maincategory');
         },
         'group'=>function($query){

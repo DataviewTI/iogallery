@@ -12,7 +12,7 @@ class GallerySeeder extends Seeder
     public function run(){
       //cria o serviço se ele não existe
       if(!Service::where('service','Gallery')->exists()){
-        Service::insert([
+        $service = Service::insert([
             'service' => "Gallery",
             'alias' =>'gallery',
             'trans' =>'Galeria',
@@ -21,6 +21,9 @@ class GallerySeeder extends Seeder
             'order' => Service::max('order')+1
           ]);
       }
+      else
+       $service = Service::where('service', 'Gallery')->first();
+
       //seta privilegios padrão para o user odin
       $odinRole = Sentinel::findRoleBySlug('odin');
       $odinRole->addPermission('gallery.view');
@@ -40,6 +43,7 @@ class GallerySeeder extends Seeder
       //Adiciona a categoria e subcategorias padrão
       if(!Category::where('Category','Gallery')->exists()){
         $gal = Category::create([
+          'service_id' => $service->id,
           'category' => 'Gallery',
           'category_slug' => 'gallery',
            'description' => 'Main category for galleries',
@@ -50,6 +54,7 @@ class GallerySeeder extends Seeder
         $cats = ['Geral'];
         foreach($cats as $c){
           Category::create([
+            'service_id' => $service->id,
             'category_id' => $gal->id,
             'category' => $c,
             'erasable'=>false,

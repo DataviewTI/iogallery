@@ -4,6 +4,7 @@
 @section('header_styles')
   <link rel="stylesheet" type="text/css" href="{{ asset('css/pickadate-full.min.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ asset('io/services/io-gallery.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ asset('io/css/io-category.min.css') }}">
 @stop
 
 @section('main-heading')
@@ -15,6 +16,7 @@
 			[
 				"_id" => "default-tablist",
 				"_active"=>0,
+        "_service"=>"gallery",
 				"_tabs"=> [
 					[
 						"tab"=>"Listar",
@@ -28,11 +30,9 @@
 					],
 					[
 						"tab"=>"Categorias",
-						"icon"=>"ico ico-structure-2",
-						"view"=>"IntranetOne::io.layout.categories-crud",
-						"params"=>[
-							"cat"=>"Gallery"
-						]
+						"icon"=>"ico ico-structure",
+            "_service"=>"category",
+						"view"=>"IntranetOne::io.services.categories.index"
 					],
 				]
 			])
@@ -51,8 +51,9 @@
 @section('footer_scripts')
 @include('IntranetOne::base.social.google-youtube')
 
-<script src="{{ asset('js/pickadate-full.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('io/services/io-gallery-babel.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('io/services/io-gallery-mix.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('io/services/io-gallery.min.js') }}" type="text/javascript"></script>
+<script src="{{ asset('js/pickadate-full.min.js') }}"></script>
+<script src="{{ asset('io/services/io-gallery-babel.min.js') }}"></script>
+<script src="{{ asset('io/services/io-gallery-mix.min.js') }}"></script>
+<script src="{{ asset('io/js/io-category.min.js') }}"></script>
+<script src="{{ asset('io/services/io-gallery.min.js') }}"></script>
 @stop
