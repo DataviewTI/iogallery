@@ -5,6 +5,29 @@ new IOService(
   function(self) {
     self.loadedVideo = null;
 
+    self.dz = new DropZoneLoader({
+      el: "#dropzone-gallery",
+      thumbnailWidth: 240,
+      thumbnailHeight: 180,
+      copy_params: {
+        original: true,
+        sizes: {},
+      },
+      crop: {
+        aspect_ratio_x: 4,
+        aspect_ratio_y: 3,
+      },
+      buttons: {
+        edit: true,
+      },
+      removedFile: function(file) {
+        // self.fv[2].updateFieldStatus("has_images", "NotValidated");
+      },
+      onSuccess: function(file, ret) {
+        // self.fv[2].revalidateField('has_images');
+      },
+    });
+
     $("button#save_video").click(function(event) {
       event.preventDefault();
       HoldOn.open({ message: "Aguarde...", theme: "sk-bounce" });
@@ -60,7 +83,7 @@ new IOService(
       });
     });
 
-    Sortable.create(document.getElementById("custom-dropzone"), {
+    Sortable.create(document.getElementById("dropzone-gallery"), {
       animation: 250,
       handle: ".dz-reorder",
     });
@@ -299,7 +322,7 @@ new IOService(
             orderable: false,
             className: "text-center",
             render: function(data, type, row) {
-              if (data.sizes != "") {
+              if (data && data.sizes != "") {
                 // data = JSON.parse(data.sizes.replace(/&quot;/g,'"'));
                 // let __sizes = [];
                 // let s;
@@ -677,23 +700,23 @@ new IOService(
       form.querySelector('.step-pane[data-step="3"]'),
       {
         fields: {
-          has_images: {
-            validators: {
-              callback: {
-                enabled: false,
-                message: "A galeria deve ter no mínimo uma imagem!",
-                callback: function(value, validator, $field) {
-                  if (self.dz.files.length > 0) return true;
-
-                  toastr["error"](
-                    "A galeria deve conter no mínimo uma imagem!"
-                  );
-
-                  return false;
-                },
-              },
-            },
-          },
+          // has_images: {
+          //   validators: {
+          //     callback: {
+          //       enabled: false,
+          //       message: "A galeria deve ter no mínimo uma imagem!",
+          //       callback: function(value, validator, $field) {
+          //         console.log(value, validator, $field);
+          //         return false;
+          //         // if (self.dz.files.length > 0) return true;
+          //         // toastr["error"](
+          //         //   "A galeria deve conter no mínimo uma imagem!"
+          //         // );
+          //         // return false;
+          //       },
+          //     },
+          //   },
+          // },
         },
         plugins: {
           trigger: new FormValidation.plugins.Trigger(),
@@ -709,6 +732,9 @@ new IOService(
       }
     ).setLocale("pt_BR", FormValidation.locales.pt_BR);
 
+    // console.log("ate aqui");
+    // return;
+
     let fv4 = FormValidation.formValidation(
       form.querySelector('.step-pane[data-step="4"]'),
       {
@@ -722,9 +748,12 @@ new IOService(
                     self.dz.files.length == 0 &&
                     $(".video-box").length == 0
                   ) {
-                    toastr["error"](
-                      "O popup deve conter uma imagem ou um vídeo!"
+                    console.log(
+                      "colocar uma checagem para evitar a msg no edit"
                     );
+                    // toastr["error"](
+                    //   "O popup deve conter uma imagem ou um vídeo!"
+                    // );
                     return false;
                   }
                   return true;
@@ -838,25 +867,6 @@ new IOService(
 
     self.fv = [fv1, fv2, fv3, fv4];
 
-    //Dropzone initialization
-    Dropzone.autoDiscover = false;
-    self.dz = new DropZoneLoader({
-      id: "#custom-dropzone",
-      autoProcessQueue: false,
-      thumbnailWidth: 240,
-      thumbnailHeight: 180,
-      copy_params: {
-        original: true,
-        sizes: {},
-      },
-      removedFile: function(file) {
-        self.fv[2].updateFieldStatus("has_images", "NotValidated");
-      },
-      onSuccess: function(file, ret) {
-        // self.fv[2].revalidateField('has_images');
-      },
-    });
-
     //need to transform wizardActions in a method of Class
     self.wizardActions(function() {
       let img_dim = getDimension(self);
@@ -864,9 +874,9 @@ new IOService(
       self.dz.options.thumbnailHeight = img_dim.thumb.h;
       self.dz.options.thumbnailWidth = img_dim.thumb.w;
 
-      $("[name='__dz_images']").val(
-        JSON.stringify(self.dz.getOrderedDataImages())
-      );
+      const teste = self.dz.getOrderedDataImages();
+      $("[name='__dz_images']").val(JSON.stringify(teste));
+
       $("[name='__dz_copy_params']").val(JSON.stringify(self.dz.copy_params));
 
       var vdata = Array();

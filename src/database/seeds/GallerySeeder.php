@@ -11,7 +11,7 @@ class GallerySeeder extends Seeder
 {
     public function run(){
       //cria o serviço se ele não existe
-      if(!Service::where('service','Gallery')->exists()){
+      if(!Service::where('service','gallery')->exists()){
         $service = Service::insert([
             'service' => "Gallery",
             'alias' =>'gallery',
@@ -22,7 +22,7 @@ class GallerySeeder extends Seeder
           ]);
       }
       else
-       $service = Service::where('service', 'Gallery')->first();
+       $service = Service::where('service', 'gallery')->first();
 
       //seta privilegios padrão para o user odin
       $odinRole = Sentinel::findRoleBySlug('odin');

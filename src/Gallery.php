@@ -4,6 +4,7 @@ namespace Dataview\IOGallery;
 use Dataview\IntranetOne\IOModel;
 use Dataview\IntranetOne\File as ProjectFile;
 use Dataview\IntranetOne\Group;
+use Dataview\IntranetOne\Service;
 use Illuminate\Support\Facades\Storage;
 
 class Gallery extends IOModel
@@ -29,7 +30,8 @@ class Gallery extends IOModel
     static::created(function (Gallery $obj) {
       $group = new Group([
         'group' => "Fotos e Videos da Galeria ".$obj->id,
-        'sizes' => $obj->getAppend("sizes")
+        'sizes' => $obj->getAppend("sizes"),
+         'service_id' => Service::where('alias','gallery')->value('id')
       ]);
       $group->save();
       $obj->group()->associate($group)->save();

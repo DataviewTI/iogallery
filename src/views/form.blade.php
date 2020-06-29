@@ -13,7 +13,7 @@
         ],
         ["name" => "Imagens", "view"=> "IntranetOne::io.forms.form-images",
           "params"=>[
-            "id"=>"custom-dropzone"
+            "id"=>"dropzone-gallery"
         ]],
         ["name" => "Videos","view"=> "IntranetOne::io.forms.form-videos"],
       ]

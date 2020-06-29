@@ -55,5 +55,4 @@
 <script src="{{ asset('io/services/io-gallery-babel.min.js') }}"></script>
 <script src="{{ asset('io/services/io-gallery-mix.min.js') }}"></script>
 <script src="{{ asset('io/js/io-category.min.js') }}"></script>
-<script src="{{ asset('io/services/io-gallery.min.js') }}"></script>
 @stop
