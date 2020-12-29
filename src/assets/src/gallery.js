@@ -8,14 +8,14 @@ new IOService({
       event.preventDefault();
       HoldOn.open({message:"Aguarde...",theme:'sk-bounce'});
 
-      // self.loadedVideo.dbId = ""; 
+      // self.loadedVideo.dbId = "";
 
       self.loadedVideo.infos.title = $( "input#video_title" ).val();
       self.loadedVideo.infos.description = $( "input#video_description" ).val();
 
-      if(self.loadedVideo.dbId != null){   
+      if(self.loadedVideo.dbId != null){
         $( ".video-box" ).each(function( index ) {
-          
+
           var video = $(this).data('video-data');
           if(video.dbId == self.loadedVideo.dbId){
             $(this).attr('data-video-data',JSON.stringify(self.loadedVideo));
@@ -99,10 +99,10 @@ new IOService({
         $('#date_end').pickadate().pickadate('picker').set('min',new Date(t.select));
       else
         $('#date_end').pickadate().pickadate('picker').set('min',new Date())
-        
+
         self.fv[0].revalidateField('date_start');
     });
-  
+
     $('#date_end').pickadate({
       formatSubmit: 'yyyy-mm-dd 00:00:00',
       min: new Date(),
@@ -122,7 +122,7 @@ new IOService({
         let api = this.api();
         this.teste = 10;
         $.fn.dataTable.defaults.initComplete(this);
-  
+
         //pickadate objects initialization
         $('#ft_dtini').pickadate({
         }).pickadate('picker').on('set', function(t){
@@ -152,7 +152,7 @@ new IOService({
         ]);
 
         $("#ft_category").change(function(e){
-          if($(this).val()=='') 
+          if($(this).val()=='')
             $("#ft_subcategory").prop('disabled','disabled').find('option').remove().end();
           else
             $.ajax({
@@ -170,9 +170,9 @@ new IOService({
                 else
                   $("#ft_subcategory").prop('disabled','disabled').find('option').remove();
               }
-            });	
+            });
         });
-                  
+
       },
       footerCallback:function(row, data, start, end, display){
       },
@@ -198,7 +198,7 @@ new IOService({
             if(c.parent!='' && c.parent!= null && !cats.includes(c.maincategory.category))
               cats.push(c.maincategory.category)
           });
-          
+
           return self.dt.addDTIcon({ico:'ico-structure-2',title:"<span class = 'text-left'>"+(cats.join('<br>'))+"</span>",value:1,pos:'right',_class:'text-primary text-normal',html:true}
             );
         }
@@ -253,13 +253,13 @@ new IOService({
     {targets:'__dt_acoes',width:"7%",className:"text-center",searchable:false,orderable:false,render:function(data,type,row,y){
             return self.dt.addDTButtons({
               buttons:[
-                {ico:'ico-eye',_class:'text-primary',title:'preview'},
+                // {ico:'ico-eye',_class:'text-primary',title:'preview'},
                 {ico:'ico-edit',_class:'text-info',title:'editar'},
                 {ico:'ico-trash',_class:'text-danger',title:'excluir'},
             ]});
           }
         }
-      ]	
+      ]
     }).on('click',".btn-dt-button[data-original-title=editar]",function(){
       var data = self.dt.row($(this).parents('tr')).data();
       self.view(data.id);
@@ -272,7 +272,7 @@ new IOService({
     }).on('draw.dt',function(){
       $('[data-toggle="tooltip"]').tooltip();
     });
-    
+
 
     self.dimensions_dt = $('#__dimensions').DataTable({
       "paging":   false,
@@ -345,7 +345,7 @@ new IOService({
       self.dimensionsFv.updateFieldStatus('img_prefix', 'NotValidated');
       self.dimensionsFv.disableValidator('img_prefix');
       self.dimensionsFv.validate().then(function(status) {
-        
+
         if(status === 'Valid')
           self.dz.copy_params.sizes.thumb.w = $('#img_largura').val();
           self.dz.copy_params.sizes.thumb.h = $('#img_altura').val();
@@ -411,20 +411,20 @@ new IOService({
       return {
         validate: function(input){
           let prfs = self.dimensions_dt.columns(0).data().toArray()[0];
-  
+
           if(prfs.includes(input.value.toLowerCase()))
             return {
               valid: false,
               message: 'O Prefixo já existe'
             }
-  
+
             return {
               valid: true,
             }
         }
       };
     };
-    
+
     const thumbPrefix = function() {
       return {
         validate: function(input){
@@ -458,7 +458,7 @@ new IOService({
                   message: 'Informe o prefíxo da imagem!'
                 }
             }
-          },          
+          },
           img_altura: {
             validators:{
               notEmpty:{
@@ -476,11 +476,11 @@ new IOService({
                 message: 'Alt. Máxima 4000px',
               }
             }
-          },      
+          },
           img_largura: {
             validators:{
               notEmpty:{
-                enabled: true, 
+                enabled: true,
                 message: 'Informe a Largura'
               },
               greaterThan: {
@@ -546,15 +546,15 @@ new IOService({
           has_images:{
             validators:{
               callback:{
-                enabled: false, 
+                enabled: false,
                 message: 'A galeria deve ter no mínimo uma imagem!',
                 callback: function(value, validator, $field){
-                  
+
                   if(self.dz.files.length>0)
                     return true
-                  
+
                   toastr["error"]("A galeria deve conter no mínimo uma imagem!")
-                  
+
                   return false;
                 }
               }
@@ -583,7 +583,7 @@ new IOService({
               callback:{
                 message: 'O popup deve conter uma imagem ou um vídeo!',
                 callback: function(input){
-                  
+
                   if(self.dz.files.length==0 && $('.video-box').length == 0){
                     toastr["error"]("O popup deve conter uma imagem ou um vídeo!")
                     return false;
@@ -597,8 +597,8 @@ new IOService({
             validators:{
               promise:{
                 promise: function(input){
-                  
-                  let dfd   = new $.Deferred(), 
+
+                  let dfd   = new $.Deferred(),
                       video = getVideoInfos($('#video_url').val()),
                       prom;
 
@@ -612,22 +612,22 @@ new IOService({
                         prom = getFacebookVideoPromise(video,self);
                         break;
                     }
-                      
+
                     prom.then(resolve=>{
                       resolve.callback(resolve);
                       $('#video_title').val(video.infos.title);
                       $('#video_description').val(video.infos.description);
                       $('#video_start_at').removeAttr('disabled');
                       $('#btn-get-current-time').removeClass('__disabled mouse-off');
-  
+
                       makeVideoThumbs(video,self);
                       if(self.loadedVideo == null)
                         self.loadedVideo = video;
-                      
+
                       $('#loaded-video').val(JSON.stringify(video));
                       // $('#video_data').val(JSON.stringify(video));
                       dfd.resolve({ valid: true });
-                      
+
                       if($('#video_url').attr('data-loaded')!==undefined){
                         let vdata = JSON.parse($('#video_url').attr('data-loaded'));
                         //what need to call twice??
@@ -683,7 +683,7 @@ new IOService({
           }),
         },
     }).setLocale('pt_BR', FormValidation.locales.pt_BR);
-        
+
     self.fv = [fv1, fv2, fv3, fv4];
 
     //Dropzone initialization
@@ -715,17 +715,17 @@ new IOService({
 
       $("[name='__dz_images']").val(JSON.stringify(self.dz.getOrderedDataImages()));
       $("[name='__dz_copy_params']").val(JSON.stringify(self.dz.copy_params));
-      
+
       var vdata = Array();
       $( ".video-box" ).each(function( index ) {
         var video = JSON.parse($(this).attr('data-video-data'));
         video.order = index;
-        vdata.push(video); 
+        vdata.push(video);
         console.log(video);
-        
+
       });
       $('#videos_data').val(JSON.stringify(vdata))
-      
+
       var cats = getCatAndSubCats();
       $('#__cat_subcats').val(cats);
       $(document.createElement('input')).prop('type','hidden').prop('name','main_cat').val(cats[0]).appendTo(self.df);
@@ -753,7 +753,7 @@ new IOService({
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                                                                                                            
+
   ██╗      ██████╗  ██████╗ █████╗ ██╗         ███╗   ███╗███████╗████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
   ██║     ██╔═══██╗██╔════╝██╔══██╗██║         ████╗ ████║██╔════╝╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
   ██║     ██║   ██║██║     ███████║██║         ██╔████╔██║█████╗     ██║   ███████║██║   ██║██║  ██║███████╗
@@ -770,7 +770,7 @@ function addDimension(p){
       null
     ],
   ).draw(true);
-  
+
   $('#img_largura').val('');
   $('#img_altura').val('');
   $('#img_prefix').val('').focus();
@@ -806,7 +806,7 @@ function getCategories(param){
     success: function(ret){
       param.callback(ret)
     }
-  });	
+  });
 }
 
 function gcd(a, b) {
@@ -834,16 +834,16 @@ function makeVideoThumbs(video,self){
             self.loadedVideo.thumbnail = {pos:$(this).attr('data-pos'), url:($(self.dz.files[0].previewTemplate).find('[data-dz-thumbnail]').attr('src'))};
           }
         }
-      }) 
+      })
     );
     $videoThumb.find('img').attr('src', $(self.dz.files[0].previewTemplate).find('[data-dz-thumbnail]').attr('src')).css({'width':'100%', 'height':'auto'});
     container.append($videoThumb);
-    
+
   }
 
   //cria as thumbs de acordo com o retorno de data.thumbs
    //$('#video_start_at').attr('data-video-duration',null);
-  video.thumbs.forEach(function(url,i){  
+  video.thumbs.forEach(function(url,i){
     var $videoThumb = (
       new_div.clone().on('click',function(){
         $(".video-thumb").removeClass('active');
@@ -855,7 +855,7 @@ function makeVideoThumbs(video,self){
             self.loadedVideo.thumbnail = {pos:$(this).attr('data-pos'), url:url};
           }
         }
-      }) 
+      })
     );
     $videoThumb.find('img').attr('src', url).css({'width':'100%', 'height':'auto'});
     container.append($videoThumb);
@@ -871,7 +871,7 @@ function getYoutubeVideoPromise(video,self){
   let _resolve = function(res){
     let player = $('#'+video.source+'-player');
     player.removeClass('d-none').attr('src',video.embed);
-    
+
     let _ytp = new YT.Player('youtube-player',{
       events: {
         'onReady': function(_t){
@@ -937,7 +937,7 @@ function getFacebookVideoPromise(video,self){
       description:res.data.description,
       duration:moment.duration(parseInt(res.data.length),'seconds').format('hh:mm:ss'),
     }
-    
+
     video.embed = video.embed+'&width='+res.data.format[0].width
     let max_video_number = (res.data.thumbnails.data.length>=3) ? 3 : res.data.thumbnails.data.length;
     for(let i=0;i<max_video_number;i++)
@@ -999,7 +999,7 @@ function getVideoInfos(url){
         '?enablejsapi=1',
         '&origin='+document.location.origin
       ].join(''),
-      thumbs:[]        
+      thumbs:[]
   }
 
   if(rgx_facebook.test(url)){
@@ -1013,7 +1013,7 @@ function getVideoInfos(url){
           '?href=https%3A%2F%2Fwww.facebook.com%2F',
           url_match[1]+'%2Fvideos%2F'+url_match[2]
         ].join(''),
-        thumbs:[]        
+        thumbs:[]
       }
   }
 
@@ -1029,7 +1029,7 @@ function preview(param){
 function view(self){
   return{
     onSuccess:function(data){
-      
+
       $("[name='title']").val(data.title);
       $("[name='description']").val(data.description);
       $("[name='date_start']").pickadate('picker').set('select',new Date(data.date_start));
@@ -1039,26 +1039,26 @@ function view(self){
 
       $("#featured").aaToggle(data.featured);
 
-      //reload imagens 
+      //reload imagens
       self.dz.removeAllFiles(true);
 
       //zera as categorias no unload
-      let attrcats = []; 
+      let attrcats = [];
       data.categories.forEach(function(obj){
         attrcats.push(obj.id)
       });
-          
+
       attrcats.forEach(function(i){
         $('.__sortable-list').not('#__sl-main-group').find(".list-group-item[__val='"+i+"']")
         .appendTo($('#__sl-main-group'));
       });
       self.fv[1].revalidateField('__cat_subcats');
-        
+
       //zera a tabela de dimensões e atualiza
       let __sizes = JSON.parse(data.group.sizes.replace(/&quot;/g,'"'));
       self.dimensions_dt.clear().draw();
       for(let s in __sizes.sizes){
-        addDimension( 
+        addDimension(
           {
             self:self,
             prefixo:s,
@@ -1101,7 +1101,7 @@ function addVideoToList(video, self){
         </span>
       </div>
       <img src="`+video.thumbnail.url+`" alt="" style="width: 100%">
-    </div> 
+    </div>
   `)
   .appendTo('#video-list');
 
@@ -1120,7 +1120,7 @@ function addVideoToList(video, self){
   });
 
   $newVideo.find('.dz-edit').on( "click", function() {
-    var video_data = JSON.parse($( this ).parents('.video-box').attr('data-video-data')); 
+    var video_data = JSON.parse($( this ).parents('.video-box').attr('data-video-data'));
     $('#video_url').val(video_data.url);
     self.fv[3].revalidateField('video_url').then(function () {
       $('#video_title').val(video_data.infos.title);
@@ -1132,5 +1132,5 @@ function addVideoToList(video, self){
     });
 
   });
- 
+
 }
